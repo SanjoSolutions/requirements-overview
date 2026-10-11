@@ -1,18 +1,16 @@
 :root { color-scheme: light; }
 body { color: #27303b; background: #fcfcfd; }
 main { max-width: 1560px; }
-#framework { max-width: 190px; }
-.tree { max-height: calc(100vh - 310px); overflow: auto; background: white; }
+.tree { max-height: calc(100dvh - 260px); overflow: auto; background: white; }
 .tree ul { list-style: none; padding-left: 18px; margin: 0; }
 .tree > ul { padding-left: 0; }
 .tree summary { padding: 6px 0; cursor: pointer; font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
 .tree summary span { margin-left: 8px; }
 .requirement-row { display: flex; align-items: center; border-radius: 4px; }
-.requirement-row:hover, .requirement-row.selected { background: #eaf1fa; }
+.requirement-row:hover, .requirement-row.editing { background: #eaf1fa; }
 .requirement { flex: 1; min-width: 0; border: 0; background: transparent; text-align: left; padding: 6px 8px; border-radius: 4px; font-size: 14px; overflow-wrap: anywhere; }
+.requirement-input { flex: 1; min-width: 0; margin: 2px 0; font-size: 14px; }
 .open-in-editor { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 4px; border-radius: 4px; color: #465a70; opacity: 0; pointer-events: none; }
 .requirement-row:hover .open-in-editor, .requirement-row:focus-within .open-in-editor { opacity: 1; pointer-events: auto; }
 .open-in-editor:hover, .open-in-editor:focus-visible { color: #0d6efd; background: #dce8f8; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; background: #f3f5f7; padding: 12px; max-height: 340px; overflow: auto; }
-#editor { position: sticky; top: 20px; background: white; }
-@media (max-width: 991px) { .tree { max-height: 55vh; } #editor { position: static; } }

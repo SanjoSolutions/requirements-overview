@@ -3,13 +3,19 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { RequirementCatalog } from "./catalog/RequirementCatalog.ts";
+import { CatalogUpdates } from "./catalog/CatalogUpdates.ts";
 import { RequirementChanges } from "./changes/RequirementChanges.ts";
 import type { ChangeRequest } from "./model.ts";
 
 export class RequirementsApi {
   readonly catalog: RequirementCatalog;
   readonly changes: RequirementChanges;
-  constructor(catalog: RequirementCatalog, changes = new RequirementChanges(catalog)) { this.catalog = catalog; this.changes = changes; }
+  readonly updates: CatalogUpdates;
+  private readonly streams = new Set<ServerResponse>();
+  constructor(catalog: RequirementCatalog, changes = new RequirementChanges(catalog), updates = new CatalogUpdates(catalog)) {
+    this.catalog = catalog; this.changes = changes; this.updates = updates;
+  }
+  closeStreams() { for (const response of this.streams) response.end(); }
   async handle(request: IncomingMessage, response: ServerResponse) {
     const send = (status: number, value: unknown) => {
       response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" });
@@ -20,6 +26,13 @@ export class RequirementsApi {
       const url = new URL(request.url ?? "/", `http://${host}`);
       if (!/^(127\.0\.0\.1|localhost):\d+$/.test(host) || (request.headers.origin && request.headers.origin !== url.origin)) {
         send(403, { error: "Open this app through its local address." });
+      } else if (request.method === "GET" && url.pathname === "/api/events") {
+        response.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no" });
+        this.streams.add(response);
+        const unsubscribe = this.updates.subscribe(update => { response.write(`event: ${update.type}\ndata: ${JSON.stringify(update)}\n\n`); });
+        const heartbeat = setInterval(() => response.write(": connected\n\n"), 15_000);
+        response.on("close", () => { clearInterval(heartbeat); unsubscribe(); this.streams.delete(response); });
+        response.write('event: catalog\ndata: {"type":"catalog"}\n\n');
       } else if (request.method === "GET" && url.pathname === "/api/catalog") {
         send(200, await this.catalog.retrieveSnapshot(url.searchParams.has("refresh")));
       } else if (request.method === "GET" && url.pathname === "/api/source") {
@@ -54,10 +67,13 @@ export async function startServer(root = resolve(import.meta.dirname, "../.."), 
   const catalog = new RequirementCatalog(root);
   const api = new RequirementsApi(catalog);
   await api.changes.initialize();
+  api.updates.start();
   const server = await createServer({
     root: import.meta.dirname, configFile: false,
     server: { host: "127.0.0.1", port, strictPort: true, fs: { deny: ["**/.state/**", "**/.git/**", "**/.env*"] } },
-    plugins: [{ name: "test-requirements-api", configureServer(vite) {
+    plugins: [{ name: "test-requirements-api", hotUpdate(context) {
+      if (catalog.isRelevantPath(context.file)) return [];
+    }, configureServer(vite) {
       vite.middlewares.use((request, response, next) => {
         if (request.url?.startsWith("/api/")) void api.handle(request, response);
         else next();
@@ -67,6 +83,7 @@ export async function startServer(root = resolve(import.meta.dirname, "../.."), 
   await server.listen();
   server.printUrls();
   const close = async () => {
+    api.updates.stop(); api.closeStreams();
     for (const job of api.changes.retrieveJobs()) api.changes.stop(job.id);
     await api.changes.waitForCompletion();
     await server.close();

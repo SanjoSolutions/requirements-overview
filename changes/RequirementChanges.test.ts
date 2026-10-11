@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RequirementCatalog } from "../catalog/RequirementCatalog.ts";
 import { RequirementChanges } from "./RequirementChanges.ts";
+import { InlineRequirementEditor } from "../ui/InlineRequirementEditor.ts";
 import { ProcessRunner } from "./ProcessRunner.ts";
 import type { ProcessExecutor } from "./ProcessRunner.ts";
 
@@ -32,7 +33,10 @@ describe("Requirement change workflow", () => {
       return runner.run(command, options);
     });
     const changes = new RequirementChanges(catalog, { run }, { command: "agent", arguments: [], cwd: root });
-    const job = await changes.apply(request); await changes.waitForCompletion();
+    const editor = new InlineRequirementEditor(change => changes.apply(change));
+    editor.begin(await catalog.retrieveRequirement(request.requirementId)); editor.update(request.description);
+    expect(await editor.save()).toBe(true); await changes.waitForCompletion();
+    const job = changes.retrieveJobs()[0];
     expect(job.status).toBe("verified");
     expect(run).toHaveBeenCalledTimes(2);
     expect((await catalog.retrieveSnapshot(true)).requirements[0].title).toBe("accepts two");

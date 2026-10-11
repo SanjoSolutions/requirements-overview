@@ -84,7 +84,7 @@ export class RequirementChanges {
     const requirement = await this.catalog.retrieveRequirement(request.requirementId);
     const context = await this.catalog.retrieveContext(requirement.path);
     if (request.sourceFingerprint !== requirement.sourceFingerprint || fingerprint(context.source) !== requirement.sourceFingerprint) {
-      throw new Error("The source changed. Refresh the tree and review the current description.");
+      throw new Error("The source changed. Review its current description and start a fresh edit.");
     }
     if (request.description.trim() === requirement.title) throw new Error("Enter a revised requirement description.");
     return requirement;

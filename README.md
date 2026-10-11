@@ -1,8 +1,10 @@
-# Test requirements
+# Requirements
 
 Local requirement editor built with TypeScript, Vite, and Bootstrap.
 
-Select a project to view its complete requirement outline. Headings use the `describe` text, and nested `describe` blocks preserve their hierarchy. Test descriptions appear beneath their suite headings. Hover over a test or focus its row to reveal the icon on the right, then open its source line in VS Code. Source paths and framework details appear in the requirement editor. Search and framework filters refine the selected project; the outline export uses the current view.
+Select a project to view its complete requirement outline. Headings use the `describe` text, and nested `describe` blocks preserve their hierarchy. Click a test description to edit it in place. **Enter** saves and starts the agent; **Esc** cancels. Search refines the selected project. Hover over a test or focus its row to reveal the icon on the right, then open its source line in VS Code.
+
+Test source edits, additions, removals, and project configuration changes update the view automatically. A debounced file watcher refreshes the shared catalog and publishes notifications through a reconnecting event stream. The tree reuses its nodes to retain scroll position, expanded suites, and active drafts. Source-version checks preserve external edits when a draft becomes stale.
 
 Run `pnpm dev:test-requirements` from the repository root, then open [the local app](http://127.0.0.1:3110/). Node.js 24 provides TypeScript execution for the local server.
 
@@ -12,9 +14,9 @@ Vitest and Playwright entries use nested `describe` titles and `it` or `test` ti
 
 Godot entries use assertion messages and test function descriptions. A test function with helper assertions can have a `## Requirement: ...` annotation. C++ supports doctest and Catch2 `TEST_CASE`, fixture cases, `SCENARIO`, `SUBCASE`, and `SECTION`, plus GoogleTest `TEST`, `TEST_F`, `TEST_P`, and `TYPED_TEST`. GoogleTest prose belongs in a `// Requirement: ...` annotation, preserving the test identifiers.
 
-Select a requirement, revise its description, and choose **Preview task** or **Apply with agent**. Applying writes the description to its source and starts the locally installed Codex CLI with a workspace-write sandbox. The task supplies the original and revised descriptions, source location, and validation commands. The agent updates the test and affected application code. The server independently runs validation and checks for an active matching test with an updated implementation. Task logs and results remain under the ignored `.state/` directory. A pending task keeps its working-tree changes available for review.
+Revise a requirement description and press **Enter**. Saving writes the description to its source and starts the locally installed Codex CLI with a workspace-write sandbox. The task supplies the original and revised descriptions, source location, and validation commands. The agent updates the test and affected application code. The server independently runs validation and checks for an active matching test with an updated implementation. Task logs and results remain under the ignored `.state/` directory. A pending task keeps its working-tree changes available for review.
 
-The local server runs one agent task at a time. **Stop task** terminates its process tree. Refresh the tree after editing test files elsewhere. The CLI uses its existing local configuration. `REQUIREMENTS_CODEX_EXECUTABLE` can select a native CLI executable.
+The local server runs one agent task at a time. **Stop task** terminates its process tree. Computed descriptions support editing through their VS Code links. The CLI uses its existing local configuration. `REQUIREMENTS_CODEX_EXECUTABLE` can select a native CLI executable.
 
 ## Discovery and validation configuration
 

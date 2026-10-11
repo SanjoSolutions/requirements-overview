@@ -28,13 +28,23 @@ export class RequirementCatalog {
     this.adapters = adapters;
   }
 
+  isRelevantPath(path: string): boolean {
+    const localPath = relative(this.root, resolve(this.root, path)).replaceAll("\\", "/");
+    const segments = localPath.split("/");
+    return localPath === "test-requirements.config.json" || (segments.every(segment => !segment.startsWith(".") && !excludedDirectories.has(segment))
+      && (candidate(localPath) || ["package.json", "project.godot"].includes(segments.at(-1)!) || !segments.at(-1)!.includes(".")));
+  }
+
   async retrieveConfiguration(): Promise<CatalogConfiguration> {
     const path = join(this.root, "test-requirements.config.json");
     return existsSync(path) ? JSON.parse(await readFile(path, "utf8")) : {};
   }
 
   async retrieveSnapshot(refresh = false): Promise<CatalogSnapshot> {
-    if (this.scanning) return this.scanning;
+    if (this.scanning) {
+      const snapshot = await this.scanning;
+      return refresh ? this.retrieveSnapshot(true) : snapshot;
+    }
     if (this.snapshot && !refresh) return this.snapshot;
     this.scanning = this.scan();
     try { this.snapshot = await this.scanning; return this.snapshot; }
