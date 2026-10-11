@@ -1,12 +1,15 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./style.css";
 import type { AgentJob, CatalogSnapshot, Requirement, RequirementTree } from "../model.ts";
+import { RequirementOutline } from "./RequirementOutline.ts";
 
 const element = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const escape = (value: string) => value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
 let snapshot: CatalogSnapshot;
 let selected: Requirement | undefined;
-const expanded = new Set<string>();
+const collapsed = new Set<string>();
+const requirementOutline = new RequirementOutline();
+let visibleTree: RequirementTree;
 let jobs: AgentJob[] = [];
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -24,16 +27,16 @@ function showMessage(message: string, style = "danger") {
 function renderTree() {
   const query = element<HTMLInputElement>("search").value.toLowerCase();
   const framework = element<HTMLSelectElement>("framework").value;
-  const matching = snapshot.requirements.filter(item => (!framework || item.framework === framework)
+  const project = element<HTMLSelectElement>("project").value;
+  const matching = snapshot.requirements.filter(item => item.project === project && (!framework || item.framework === framework)
     && [item.title, item.path, ...item.suites].join(" ").toLowerCase().includes(query));
-  const identifiers = new Set(matching.map(item => item.id));
-  const visible = (node: RequirementTree): boolean => node.requirement ? identifiers.has(node.id) : node.children.some(visible);
-  const count = (node: RequirementTree): number => node.requirement ? Number(identifiers.has(node.id)) : node.children.reduce((sum, child) => sum + count(child), 0);
+  visibleTree = requirementOutline.retrieveTree(matching, project);
   const render = (node: RequirementTree): string => node.requirement
-    ? `<li><button class="requirement ${selected?.id === node.id ? "selected" : ""}" data-requirement="${node.id}"><span class="test-mark">${node.requirement.status === "skipped" ? "○" : "•"}</span><span>${escape(node.title)}</span><span class="framework-label">${escape(node.requirement.framework)}</span></button></li>`
-    : `<li><details data-node="${escape(node.id)}" ${expanded.has(node.id) || query || framework ? "open" : ""}><summary>${escape(node.title)} <span class="text-secondary small">${count(node)}</span></summary><ul>${node.children.filter(visible).map(render).join("")}</ul></details></li>`;
-  element("tree").innerHTML = matching.length ? `<ul>${snapshot.tree.children.filter(visible).map(render).join("")}</ul>` : '<p class="text-secondary mb-0">Matching requirements appear here.</p>';
-  element("summary").textContent = `${matching.length.toLocaleString()} of ${snapshot.requirements.length.toLocaleString()} test descriptions · ${snapshot.frameworks.filter(item => item.count).length} frameworks`;
+    ? `<li><button class="requirement ${selected?.id === node.id ? "selected" : ""}" data-requirement="${node.id}">${escape(node.title)}</button></li>`
+    : `<li><details data-node="${escape(node.id)}" ${collapsed.has(node.id) && !query ? "" : "open"}><summary>${escape(node.title)}</summary><ul>${node.children.map(render).join("")}</ul></details></li>`;
+  element("tree").innerHTML = matching.length ? `<ul>${visibleTree.children.map(render).join("")}</ul>` : '<p class="text-secondary mb-0">Matching requirements appear here.</p>';
+  const projectCount = snapshot.requirements.filter(item => item.project === project).length;
+  element("summary").textContent = `${matching.length.toLocaleString()} of ${projectCount.toLocaleString()} test descriptions`;
 }
 
 async function selectRequirement(id: string) {
@@ -94,14 +97,25 @@ async function refresh(force = false) {
   element<HTMLButtonElement>("refresh").disabled = true;
   try {
     snapshot = await request<CatalogSnapshot>(`/api/catalog${force ? "?refresh=1" : ""}`);
-    const framework = element<HTMLSelectElement>("framework");
-    const value = framework.value;
-    framework.innerHTML = '<option value="">All frameworks</option>' + snapshot.frameworks.map(item => `<option value="${item.id}">${escape(item.label)} (${item.count})</option>`).join("");
-    framework.value = value;
+    const project = element<HTMLSelectElement>("project");
+    const value = project.value || new URL(location.href).searchParams.get("project");
+    const projects = [...new Set(snapshot.requirements.map(item => item.project))].sort();
+    project.innerHTML = projects.map(item => `<option value="${escape(item)}">${escape(item)}</option>`).join("");
+    project.value = value && projects.includes(value) ? value : projects[0] ?? "";
+    renderFrameworks();
     renderTree();
     if (snapshot.issues.length) showMessage(`${snapshot.issues.length} source files need review. ${snapshot.issues[0]}`, "warning");
   } catch (error) { showMessage((error as Error).message); }
   finally { element<HTMLButtonElement>("refresh").disabled = false; }
+}
+
+function renderFrameworks() {
+  const project = element<HTMLSelectElement>("project").value;
+  const framework = element<HTMLSelectElement>("framework");
+  const value = framework.value;
+  const frameworks = snapshot.frameworks.map(item => ({ ...item, count: snapshot.requirements.filter(requirement => requirement.project === project && requirement.framework === item.id).length })).filter(item => item.count > 0);
+  framework.innerHTML = '<option value="">All frameworks</option>' + frameworks.map(item => `<option value="${item.id}">${escape(item.label)} (${item.count})</option>`).join("");
+  framework.value = frameworks.some(item => item.id === value) ? value : "";
 }
 
 element("tree").addEventListener("click", event => {
@@ -111,18 +125,24 @@ element("tree").addEventListener("click", event => {
 element("tree").addEventListener("toggle", event => {
   const details = event.target as HTMLDetailsElement;
   if (details.dataset.node) {
-    if (details.open) expanded.add(details.dataset.node);
-    else expanded.delete(details.dataset.node);
+    if (details.open) collapsed.delete(details.dataset.node);
+    else collapsed.add(details.dataset.node);
   }
 }, true);
 element("search").addEventListener("input", renderTree);
 element("framework").addEventListener("change", renderTree);
+element("project").addEventListener("change", () => {
+  collapsed.clear(); selected = undefined;
+  element("editor").innerHTML = '<h2 class="h6">Select a requirement</h2><p class="text-secondary mb-0 small">Choose a test description in the tree.</p>';
+  renderFrameworks(); renderTree();
+  const url = new URL(location.href); url.searchParams.set("project", element<HTMLSelectElement>("project").value); history.replaceState({}, "", url);
+});
 element("refresh").addEventListener("click", () => void refresh(true));
-element("expand").addEventListener("click", () => { document.querySelectorAll<HTMLDetailsElement>("#tree details").forEach(item => { item.open = true; expanded.add(item.dataset.node!); }); });
-element("collapse").addEventListener("click", () => { expanded.clear(); document.querySelectorAll<HTMLDetailsElement>("#tree details").forEach(item => { item.open = false; }); });
+element("expand").addEventListener("click", () => { collapsed.clear(); document.querySelectorAll<HTMLDetailsElement>("#tree details").forEach(item => { item.open = true; }); });
+element("collapse").addEventListener("click", () => { document.querySelectorAll<HTMLDetailsElement>("#tree details").forEach(item => { item.open = false; collapsed.add(item.dataset.node!); }); });
 element("export").addEventListener("click", () => {
   const outline = (node: RequirementTree, depth: number): string => `${"  ".repeat(depth)}- ${node.title}\n${node.children.map(child => outline(child, depth + 1)).join("")}`;
-  const url = URL.createObjectURL(new Blob([outline(snapshot.tree, 0)], { type: "text/markdown" }));
+  const url = URL.createObjectURL(new Blob([outline(visibleTree, 0)], { type: "text/markdown" }));
   const link = document.createElement("a"); link.href = url; link.download = "test-requirements.md"; link.click(); URL.revokeObjectURL(url);
 });
 element("jobs").addEventListener("click", event => {

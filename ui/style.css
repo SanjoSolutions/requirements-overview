@@ -2,15 +2,13 @@
 body { color: #27303b; background: #fcfcfd; }
 main { max-width: 1560px; }
 #framework { max-width: 190px; }
-.tree { max-height: calc(100vh - 230px); overflow: auto; background: white; }
+.tree { max-height: calc(100vh - 310px); overflow: auto; background: white; }
 .tree ul { list-style: none; padding-left: 18px; margin: 0; }
 .tree > ul { padding-left: 0; }
-.tree summary { padding: 6px 0; cursor: pointer; font-size: 14px; overflow-wrap: anywhere; }
+.tree summary { padding: 6px 0; cursor: pointer; font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
 .tree summary span { margin-left: 8px; }
 .requirement { display: flex; align-items: baseline; gap: 8px; width: 100%; border: 0; background: transparent; text-align: left; padding: 6px 8px; border-radius: 4px; font-size: 14px; }
 .requirement:hover, .requirement.selected { background: #eaf1fa; }
-.test-mark { color: #6c757d; }
-.framework-label { margin-left: auto; color: #687787; font-size: 10px; white-space: nowrap; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; background: #f3f5f7; padding: 12px; max-height: 340px; overflow: auto; }
 #editor { position: sticky; top: 20px; background: white; }
 @media (max-width: 991px) { .tree { max-height: 55vh; } #editor { position: static; } }
