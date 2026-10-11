@@ -38,16 +38,10 @@ export class RequirementsApi {
       } else if (request.method === "GET" && url.pathname === "/api/source") {
         const requirement = await this.catalog.retrieveRequirement(url.searchParams.get("id") ?? "");
         send(200, { source: await this.catalog.retrieveSource(requirement) });
-      } else if (request.method === "GET" && url.pathname === "/api/jobs") {
-        send(200, this.changes.retrieveJobs());
-      } else if (request.method === "POST" && ["/api/preview", "/api/changes"].includes(url.pathname)) {
+      } else if (request.method === "POST" && url.pathname === "/api/changes") {
         if (request.headers["content-type"] !== "application/json") throw new Error("Send this change as JSON.");
         const body = await this.readBody(request) as ChangeRequest;
-        send(200, url.pathname === "/api/preview" ? await this.changes.preview(body) : await this.changes.apply(body));
-      } else if (request.method === "POST" && url.pathname === "/api/stop") {
-        const body = await this.readBody(request) as { id: string };
-        this.changes.stop(body.id);
-        send(200, { stopped: true });
+        send(200, await this.changes.apply(body));
       } else {
         send(404, { error: "Choose an available action." });
       }
@@ -66,7 +60,6 @@ export class RequirementsApi {
 export async function startServer(root = resolve(import.meta.dirname, "../.."), port = 3110) {
   const catalog = new RequirementCatalog(root);
   const api = new RequirementsApi(catalog);
-  await api.changes.initialize();
   api.updates.start();
   const server = await createServer({
     root: import.meta.dirname, configFile: false,
@@ -84,8 +77,6 @@ export async function startServer(root = resolve(import.meta.dirname, "../.."), 
   server.printUrls();
   const close = async () => {
     api.updates.stop(); api.closeStreams();
-    for (const job of api.changes.retrieveJobs()) api.changes.stop(job.id);
-    await api.changes.waitForCompletion();
     await server.close();
   };
   process.once("SIGINT", () => void close());

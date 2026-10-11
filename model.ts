@@ -58,15 +58,3 @@ export interface ChangeRequest {
   sourceFingerprint: string;
   description: string;
 }
-
-export interface AgentJob {
-  id: string;
-  requirement: Requirement;
-  description: string;
-  prompt: string;
-  status: "running" | "validating" | "verified" | "failed" | "interrupted";
-  createdAt: string;
-  updatedAt: string;
-  log: string;
-  summary?: string;
-}

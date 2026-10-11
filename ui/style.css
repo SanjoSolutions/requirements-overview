@@ -13,4 +13,3 @@ main { max-width: 1560px; }
 .open-in-editor { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 4px; border-radius: 4px; color: #465a70; opacity: 0; pointer-events: none; }
 .requirement-row:hover .open-in-editor, .requirement-row:focus-within .open-in-editor { opacity: 1; pointer-events: auto; }
 .open-in-editor:hover, .open-in-editor:focus-visible { color: #0d6efd; background: #dce8f8; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; background: #f3f5f7; padding: 12px; max-height: 340px; overflow: auto; }
