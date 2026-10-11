@@ -1,0 +1,21 @@
+{
+  "name": "@sanjo/test-requirements",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.ts",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "bootstrap": "5.3.6",
+    "typescript": "5.9.3",
+    "vite": "7.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "vitest": "4.1.11"
+  }
+}
