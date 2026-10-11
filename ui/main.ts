@@ -29,7 +29,6 @@ function showMessage(message: string, style = "danger", kind = "action") {
 }
 function renderTree() {
   tree.update(requirements, element<HTMLSelectElement>("project").value, element<HTMLInputElement>("search").value);
-  element("edit-help").classList.toggle("d-none", !editor.retrieveDraft());
 }
 async function refresh() {
   refreshPending = true;

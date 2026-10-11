@@ -72,11 +72,13 @@ export class RequirementTreeView {
     row.className = `requirement-row${editing ? " editing" : ""}`;
     let description = row.querySelector<HTMLInputElement | HTMLButtonElement>(".requirement, .requirement-input");
     if (!description || (description instanceof HTMLInputElement) !== editing) {
+      const height = description?.getBoundingClientRect().height;
       const replacement = document.createElement(editing ? "input" : "button");
       if (description) description.replaceWith(replacement); else row.prepend(replacement);
       description = replacement;
       if (replacement instanceof HTMLInputElement) {
         replacement.className = "requirement-input form-control form-control-sm"; replacement.value = draft!.description; replacement.maxLength = 2000;
+        if (height) replacement.style.height = `${height}px`;
         replacement.setAttribute("aria-label", "Requirement description"); replacement.setAttribute("aria-describedby", "edit-help");
       } else {
         replacement.className = "requirement"; replacement.dataset.requirement = requirement.id;
