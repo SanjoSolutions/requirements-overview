@@ -1,16 +1,28 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createServer } from "node:http";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
-import { RequirementsApi } from "./server.ts";
+import { RequirementsApi, startServer } from "./server.ts";
 import { RequirementCatalog } from "./catalog/RequirementCatalog.ts";
 
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await close(); });
 
 describe("Requirements API", () => {
+  it("serves requirements from the current working directory by default", async () => {
+    const root = await mkdtemp(join(tmpdir(), "requirements-cwd-")); cleanup.push(() => rm(root, { recursive: true, force: true }));
+    await writeFile(join(root, "session.test.ts"), `import { it } from 'vitest'; it('opens the session from this directory', () => {});`);
+    const workingDirectory = vi.spyOn(process, "cwd").mockReturnValue(root);
+    try {
+      const server = await startServer(undefined, 0); cleanup.push(() => server.close());
+      const address = `http://127.0.0.1:${(server.httpServer!.address() as AddressInfo).port}`;
+      const response = await fetch(`${address}/api/catalog`);
+      expect(response.status).toBe(200);
+      expect((await response.json()).requirements.map((requirement: { title: string }) => requirement.title)).toEqual(["opens the session from this directory"]);
+    } finally { workingDirectory.mockRestore(); }
+  });
   it("saves an inline description, preserves its implementation, and publishes a live update", async () => {
     const root = await mkdtemp(join(tmpdir(), "requirements-api-")); cleanup.push(() => rm(root, { recursive: true, force: true }));
     const directory = join(root, "apps", "example"); await mkdir(directory, { recursive: true });

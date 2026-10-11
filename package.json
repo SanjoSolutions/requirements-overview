@@ -1,11 +1,16 @@
 {
-  "name": "@sanjo/requirements-overview",
+  "name": "requirements-overview",
   "version": "0.1.0",
   "license": "MIT-0",
   "private": true,
   "type": "module",
+  "description": "Browse and edit requirement descriptions in test source files.",
+  "packageManager": "pnpm@12.3.4",
+  "engines": { "node": ">=24 <25" },
+  "repository": { "type": "git", "url": "https://github.com/SanjoSolutions/requirements-overview.git" },
+  "bin": { "requirements-overview": "cli.ts" },
   "scripts": {
-    "dev": "node server.ts",
+    "dev": "node cli.ts",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

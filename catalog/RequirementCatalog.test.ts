@@ -8,6 +8,27 @@ const directories: string[] = [];
 afterEach(async () => { await Promise.all(directories.splice(0).map(path => rm(path, { recursive: true, force: true }))); });
 
 describe("Requirement catalog", () => {
+  it("collects root-level tests and nested projects from the starting directory", async () => {
+    const root = await mkdtemp(join(tmpdir(), "requirement-root-")); directories.push(root);
+    await writeFile(join(root, "package.json"), JSON.stringify({ devDependencies: { vitest: "4" } }));
+    await writeFile(join(root, "session.test.ts"), `describe('Sessions', () => { it('keeps the selection', () => {}); });`);
+    const directory = join(root, "examples", "game"); await mkdir(directory, { recursive: true });
+    await writeFile(join(directory, "project.godot"), "config_version=5");
+    await writeFile(join(directory, "test_menu.gd"), 'func test_menu():\n  assert(visible, "Opening the menu shows activities")');
+    const snapshot = await new RequirementCatalog(root).retrieveSnapshot();
+    expect(snapshot.issues).toEqual([]);
+    expect(snapshot.requirements.map(requirement => requirement.project)).toEqual(["examples/game", "Repository"]);
+    expect(snapshot.requirements.map(requirement => requirement.title)).toEqual(["Opening the menu shows activities", "keeps the selection"]);
+  });
+  it("uses configured discovery roots within the starting directory", async () => {
+    const root = await mkdtemp(join(tmpdir(), "requirement-roots-")); directories.push(root);
+    const directory = join(root, "specs"); await mkdir(directory);
+    await writeFile(join(root, "other.test.ts"), `import { it } from 'vitest'; it('opens a session', () => {});`);
+    await writeFile(join(directory, "session.test.ts"), `import { it } from 'vitest'; it('keeps the selection', () => {});`);
+    await writeFile(join(root, "requirements-overview.config.json"), JSON.stringify({ roots: ["specs"] }));
+    const snapshot = await new RequirementCatalog(root).retrieveSnapshot();
+    expect(snapshot.requirements.map(requirement => requirement.path)).toEqual(["specs/session.test.ts"]);
+  });
   it("collects Godot assertion requirements from test-prefixed source files", async () => {
     const root = await mkdtemp(join(tmpdir(), "requirement-godot-")); directories.push(root);
     const directory = join(root, "apps", "game");

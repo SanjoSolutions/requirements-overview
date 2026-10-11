@@ -1,6 +1,4 @@
 import { createServer } from "vite";
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { RequirementCatalog } from "./catalog/RequirementCatalog.ts";
 import { CatalogUpdates } from "./catalog/CatalogUpdates.ts";
@@ -57,7 +55,7 @@ export class RequirementsApi {
   }
 }
 
-export async function startServer(root = resolve(import.meta.dirname, "../.."), port = 3110) {
+export async function startServer(root = process.cwd(), port = 3110) {
   const catalog = new RequirementCatalog(root);
   const api = new RequirementsApi(catalog);
   api.updates.start();
@@ -79,11 +77,13 @@ export async function startServer(root = resolve(import.meta.dirname, "../.."), 
     api.updates.stop(); api.closeStreams();
     await server.close();
   };
-  process.once("SIGINT", () => void close());
-  process.once("SIGTERM", () => void close());
+  const handleSignal = () => void close();
+  process.once("SIGINT", handleSignal);
+  process.once("SIGTERM", handleSignal);
+  server.httpServer?.once("close", () => {
+    api.updates.stop(); api.closeStreams();
+    process.removeListener("SIGINT", handleSignal);
+    process.removeListener("SIGTERM", handleSignal);
+  });
   return server;
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  await startServer(process.argv[2] ? resolve(process.argv[2]) : undefined);
 }

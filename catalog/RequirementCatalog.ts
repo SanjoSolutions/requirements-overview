@@ -86,7 +86,7 @@ export class RequirementCatalog {
 
   resolvePath(path: string): string {
     const result = resolve(this.root, path);
-    if (result.startsWith(this.root + sep)) return result;
+    if (result === this.root || result.startsWith(this.root.endsWith(sep) ? this.root : this.root + sep)) return result;
     throw new Error("Choose a source file inside the repository.");
   }
 
@@ -111,7 +111,7 @@ export class RequirementCatalog {
         }
       } catch (error) { issues.push(`${relative(this.root, directory)}: ${String(error)}`); }
     };
-    for (const root of configuration.roots ?? ["apps", "packages", "scripts"]) {
+    for (const root of configuration.roots ?? ["."]) {
       const directory = this.resolvePath(root);
       if (existsSync(directory)) await walk(directory);
     }
