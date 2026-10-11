@@ -6,10 +6,11 @@ main { max-width: 1560px; }
 .tree > ul { padding-left: 0; }
 .tree summary { padding: 6px 0; cursor: pointer; font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
 .tree summary span { margin-left: 8px; }
-.requirement-row { display: flex; align-items: center; border-radius: 4px; }
+.requirement-row { position: relative; display: flex; align-items: center; border-radius: 4px; }
 .requirement-row:hover, .requirement-row.editing { background: #eaf1fa; }
-.requirement { flex: 1; min-width: 0; border: 0; background: transparent; text-align: left; padding: 6px 8px; border-radius: 4px; font-size: 14px; overflow-wrap: anywhere; }
+.requirement { flex: 1; min-width: 0; border: 0; background: transparent; text-align: left; padding: 6px 40px 6px 8px; border-radius: 4px; font-size: 14px; overflow-wrap: anywhere; }
 .requirement-input { flex: 1; min-width: 0; height: 33px; margin: 0; padding: 5px 7px; font-size: 14px; line-height: 1.5; }
-.open-in-editor { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 4px; border-radius: 4px; color: #465a70; opacity: 0; pointer-events: none; }
-.requirement-row:hover .open-in-editor, .requirement-row:focus-within .open-in-editor { opacity: 1; pointer-events: auto; }
+.requirement-row:hover .requirement-input, .requirement-row:has(.open-in-editor:focus-visible) .requirement-input { padding-right: 39px; }
+.open-in-editor { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 4px; color: #465a70; opacity: 0; pointer-events: none; }
+.requirement-row:hover .open-in-editor, .open-in-editor:focus-visible { opacity: 1; pointer-events: auto; }
 .open-in-editor:hover, .open-in-editor:focus-visible { color: #0d6efd; background: #dce8f8; }
