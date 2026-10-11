@@ -1,4 +1,6 @@
 import { createServer } from "vite";
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { RequirementCatalog } from "./catalog/RequirementCatalog.ts";
 import { CatalogUpdates } from "./catalog/CatalogUpdates.ts";
@@ -60,7 +62,7 @@ export async function startServer(root = process.cwd(), port = 3110) {
   const api = new RequirementsApi(catalog);
   api.updates.start();
   const server = await createServer({
-    root: import.meta.dirname, configFile: false,
+    root: existsSync(join(import.meta.dirname, "index.html")) ? import.meta.dirname : resolve(import.meta.dirname, "../client"), configFile: false,
     server: { host: "127.0.0.1", port, strictPort: true, fs: { deny: ["**/.state/**", "**/.git/**", "**/.env*"] } },
     plugins: [{ name: "requirements-overview-api", hotUpdate(context) {
       if (catalog.isRelevantPath(context.file)) return [];

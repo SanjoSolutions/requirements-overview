@@ -2,13 +2,31 @@
 
 Local requirement editor built with TypeScript, Vite, and Bootstrap.
 
-![Requirements overview showing its own test requirements](docs/requirements-overview.jpg)
+![Requirements overview showing its own test requirements](https://raw.githubusercontent.com/SanjoSolutions/requirements-overview/main/docs/requirements-overview.jpg)
 
 Select a project to view its complete requirement outline. Headings use the `describe` text, and nested `describe` blocks preserve their hierarchy. Click a test description to edit it in place. **Enter** saves the description text in the test file; **Esc** cancels. Search refines the selected project. Hover over a test or focus its row to reveal the icon on the right, then open its source line in VS Code.
 
 Test source edits, additions, removals, and project configuration changes update the view automatically. A debounced file watcher refreshes the shared catalog and publishes notifications through a reconnecting event stream. The tree reuses its nodes to retain scroll position, expanded suites, and active drafts. Source-version checks preserve external edits when a draft becomes stale.
 
 ## Start
+
+Install Node.js 24, open the directory whose tests you want to browse, and run:
+
+```sh
+cd /path/to/your/project
+npx requirements-overview
+```
+
+Open [the local app](http://127.0.0.1:3110/). Discovery uses the current working directory (CWD).
+
+For repeated use, install the command globally:
+
+```sh
+npm install --global requirements-overview
+requirements-overview
+```
+
+## Run from source
 
 Install Node.js 24 and pnpm 12.3.4, then install the dependencies in this checkout:
 
@@ -70,6 +88,10 @@ The catalog includes configured C++ build and test recipes, Godot runner metadat
 Run `pnpm test`, `pnpm typecheck`, and `pnpm build` from this checkout. Unit tests use Vitest and exercise the adapters, catalog, live updates, and description saves through their public APIs.
 
 Framework support belongs in adapters that implement `TestFrameworkAdapter`. The catalog, source editor, and UI use the shared requirement model.
+
+## Publishing
+
+Run `pnpm test`, `pnpm typecheck`, and `pnpm build` from a committed revision. `npm pack` builds the browser assets and JavaScript runtime through `prepack`. Verify the tarball in a separate installation, then publish that verified tarball with `npm publish ./requirements-overview-VERSION.tgz --access public`. Use a fresh version for each release.
 
 ## License
 

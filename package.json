@@ -2,18 +2,25 @@
   "name": "requirements-overview",
   "version": "0.1.0",
   "license": "MIT-0",
-  "private": true,
   "type": "module",
   "description": "Browse and edit requirement descriptions in test source files.",
   "packageManager": "pnpm@12.3.4",
-  "engines": { "node": ">=24 <25" },
-  "repository": { "type": "git", "url": "https://github.com/SanjoSolutions/requirements-overview.git" },
-  "bin": { "requirements-overview": "cli.ts" },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SanjoSolutions/requirements-overview.git"
+  },
+  "bin": {
+    "requirements-overview": "dist/runtime/cli.js"
+  },
   "scripts": {
     "dev": "node cli.ts",
-    "build": "vite build",
+    "build": "vite build --outDir dist/client && tsc --project tsconfig.package.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "bootstrap": "5.3.6",
@@ -23,5 +30,16 @@
   "devDependencies": {
     "@types/node": "24.13.3",
     "vitest": "4.1.11"
+  },
+  "files": [
+    "dist/client",
+    "dist/runtime",
+    "docs/requirements-overview.jpg",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }
