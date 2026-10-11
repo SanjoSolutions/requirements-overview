@@ -79,7 +79,7 @@ export class RequirementTreeView {
       if (replacement instanceof HTMLInputElement) {
         replacement.className = "requirement-input form-control form-control-sm"; replacement.value = draft!.description; replacement.maxLength = 2000;
         if (height) replacement.style.height = `${height}px`;
-        replacement.setAttribute("aria-label", "Requirement description"); replacement.setAttribute("aria-describedby", "edit-help");
+        replacement.setAttribute("aria-label", "Requirement description");
       } else {
         replacement.className = "requirement"; replacement.dataset.requirement = requirement.id;
         replacement.title = requirement.editable ? "Edit requirement" : "Open this computed description in VS Code";
