@@ -16,6 +16,10 @@ export class RequirementTreeView {
   private composing = false;
   constructor(container: HTMLElement, editor: InlineRequirementEditor) {
     this.container = container; this.editor = editor;
+    new ResizeObserver(() => this.resizeDescriptions()).observe(container);
+    container.addEventListener("input", event => {
+      if (event.target instanceof HTMLTextAreaElement && event.target.classList.contains("requirement-input")) this.resizeDescriptions();
+    });
     container.addEventListener("compositionstart", () => { this.composing = true; });
     container.addEventListener("compositionend", () => { this.composing = false; this.render(); });
     container.addEventListener("toggle", event => {
@@ -32,7 +36,7 @@ export class RequirementTreeView {
   expand() { this.collapsed.clear(); this.render(); }
   collapse() { this.container.querySelectorAll<HTMLDetailsElement>("details").forEach(details => { this.collapsed.add(details.dataset.node!); details.open = false; }); }
   focusDescription(id?: string) {
-    const input = this.container.querySelector<HTMLInputElement>(".requirement-input");
+    const input = this.container.querySelector<HTMLTextAreaElement>(".requirement-input");
     if (input) { input.focus({ preventScroll: true }); input.select(); }
     else if (id) this.container.querySelector<HTMLButtonElement>(`[data-requirement="${id}"]`)?.focus({ preventScroll: true });
   }
@@ -63,35 +67,44 @@ export class RequirementTreeView {
         }
         return item;
       };
-      this.reconcile(list, tree.children.map(renderNode)); this.container.scrollTop = scroll;
+      this.reconcile(list, tree.children.map(renderNode)); this.resizeDescriptions(); this.container.scrollTop = scroll;
       if (active?.isConnected && document.activeElement !== active) active.focus({ preventScroll: true });
     }
   }
   private renderRequirement(row: HTMLLIElement, requirement: Requirement) {
     const draft = this.editor.retrieveDraft(); const editing = draft?.requirement.id === requirement.id;
     row.className = `requirement-row${editing ? " editing" : ""}`;
-    let description = row.querySelector<HTMLInputElement | HTMLButtonElement>(".requirement, .requirement-input");
-    if (!description || (description instanceof HTMLInputElement) !== editing) {
+    let description = row.querySelector<HTMLTextAreaElement | HTMLButtonElement>(".requirement, .requirement-input");
+    if (!description || (description instanceof HTMLTextAreaElement) !== editing) {
       const height = description?.getBoundingClientRect().height;
-      const replacement = document.createElement(editing ? "input" : "button");
+      const replacement = document.createElement(editing ? "textarea" : "button");
       if (description) description.replaceWith(replacement); else row.prepend(replacement);
       description = replacement;
-      if (replacement instanceof HTMLInputElement) {
-        replacement.className = "requirement-input form-control form-control-sm"; replacement.value = draft!.description; replacement.maxLength = 2000;
-        if (height) replacement.style.height = `${height}px`;
+      if (replacement instanceof HTMLTextAreaElement) {
+        replacement.className = "requirement-input form-control form-control-sm"; replacement.value = draft!.description; replacement.maxLength = 2000; replacement.rows = 1;
+        if (height) replacement.style.minHeight = `${height}px`;
         replacement.setAttribute("aria-label", "Requirement description");
       } else {
         replacement.className = "requirement"; replacement.dataset.requirement = requirement.id;
         replacement.title = requirement.editable ? "Edit requirement" : "Open this computed description in VS Code";
       }
     }
-    if (description instanceof HTMLInputElement) description.readOnly = draft!.saving;
+    if (description instanceof HTMLTextAreaElement) description.readOnly = draft!.saving;
     else if (description.textContent !== requirement.title) description.textContent = requirement.title;
     if (requirement.editorUrl) {
       let link = row.querySelector<HTMLAnchorElement>(".open-in-editor");
       if (!link) { link = document.createElement("a"); link.className = "open-in-editor"; link.innerHTML = editorIcon; row.append(link); }
       link.href = requirement.editorUrl; link.title = "Open in VS Code"; link.setAttribute("aria-label", `Open ${requirement.title} in VS Code`);
     }
+  }
+  private resizeDescriptions() {
+    const scroll = this.container.scrollTop;
+    this.container.querySelectorAll<HTMLTextAreaElement>(".requirement-input").forEach(description => {
+      description.style.height = "0px";
+      const border = description.offsetHeight - description.clientHeight;
+      description.style.height = `${description.scrollHeight + border}px`;
+    });
+    this.container.scrollTop = scroll;
   }
   private reconcile(parent: HTMLElement, children: HTMLElement[]) {
     let position = parent.firstElementChild;

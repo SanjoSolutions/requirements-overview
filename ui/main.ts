@@ -69,7 +69,7 @@ element("tree").addEventListener("click", event => {
   }
 });
 element("tree").addEventListener("input", event => {
-  const input = event.target as HTMLInputElement;
+  const input = event.target as HTMLTextAreaElement;
   if (input.classList.contains("requirement-input")) editor.update(input.value);
 });
 element("tree").addEventListener("keydown", event => {
