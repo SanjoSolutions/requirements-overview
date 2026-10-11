@@ -2,7 +2,7 @@
 
 Local requirement editor built with TypeScript, Vite, and Bootstrap.
 
-Select a project to view its complete requirement outline. Headings use the `describe` text, and nested `describe` blocks preserve their hierarchy. Test descriptions appear beneath their suite headings. Source paths and framework details appear in the requirement editor. Search and framework filters refine the selected project; the outline export uses the current view.
+Select a project to view its complete requirement outline. Headings use the `describe` text, and nested `describe` blocks preserve their hierarchy. Test descriptions appear beneath their suite headings. Hover over a test or focus its row to reveal the icon on the right, then open its source line in VS Code. Source paths and framework details appear in the requirement editor. Search and framework filters refine the selected project; the outline export uses the current view.
 
 Run `pnpm dev:test-requirements` from the repository root, then open [the local app](http://127.0.0.1:3110/). Node.js 24 provides TypeScript execution for the local server.
 

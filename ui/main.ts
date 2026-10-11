@@ -31,9 +31,15 @@ function renderTree() {
   const matching = snapshot.requirements.filter(item => item.project === project && (!framework || item.framework === framework)
     && [item.title, item.path, ...item.suites].join(" ").toLowerCase().includes(query));
   visibleTree = requirementOutline.retrieveTree(matching, project);
-  const render = (node: RequirementTree): string => node.requirement
-    ? `<li><button class="requirement ${selected?.id === node.id ? "selected" : ""}" data-requirement="${node.id}">${escape(node.title)}</button></li>`
-    : `<li><details data-node="${escape(node.id)}" ${collapsed.has(node.id) && !query ? "" : "open"}><summary>${escape(node.title)}</summary><ul>${node.children.map(render).join("")}</ul></details></li>`;
+  const render = (node: RequirementTree): string => {
+    if (node.requirement) {
+      const editorLink = node.requirement.editorUrl
+        ? `<a class="open-in-editor" href="${escape(node.requirement.editorUrl)}" aria-label="Open ${escape(node.title)} in VS Code" title="Open in VS Code"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7M21 3l-11 11M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/></svg></a>` : "";
+      return `<li class="requirement-row ${selected?.id === node.id ? "selected" : ""}"><button class="requirement" data-requirement="${node.id}">${escape(node.title)}</button>${editorLink}</li>`;
+    } else {
+      return `<li><details data-node="${escape(node.id)}" ${collapsed.has(node.id) && !query ? "" : "open"}><summary>${escape(node.title)}</summary><ul>${node.children.map(render).join("")}</ul></details></li>`;
+    }
+  };
   element("tree").innerHTML = matching.length ? `<ul>${visibleTree.children.map(render).join("")}</ul>` : '<p class="text-secondary mb-0">Matching requirements appear here.</p>';
   const projectCount = snapshot.requirements.filter(item => item.project === project).length;
   element("summary").textContent = `${matching.length.toLocaleString()} of ${projectCount.toLocaleString()} test descriptions`;

@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { PlaywrightAdapter, VitestAdapter, NodeTestAdapter, JestAdapter } from "../adapters/JavaScriptAdapters.ts";
 import { GodotAdapter } from "../adapters/GodotAdapter.ts";
 import { CppAdapter } from "../adapters/CppAdapter.ts";
+import { VSCodeLink } from "./VSCodeLink.ts";
 import type { TestFrameworkAdapter } from "../adapters/TestFrameworkAdapter.ts";
 import type { CatalogSnapshot, Requirement, RequirementTree, SourceContext, ValidationCommand } from "../model.ts";
 
@@ -18,6 +19,7 @@ export class RequirementCatalog {
   readonly root: string;
   readonly adapters: TestFrameworkAdapter[];
   private readonly cache = new Map<string, { signature: string; source: string }>();
+  private readonly editorLink = new VSCodeLink();
   private snapshot?: CatalogSnapshot;
   private scanning?: Promise<CatalogSnapshot>;
 
@@ -124,7 +126,7 @@ export class RequirementCatalog {
             validation = recipe ? recipe.commands.map(command => ({ ...command, cwd: resolve(this.root, command.cwd ?? recipe.path) })) : adapter.retrieveValidation(context);
             if (validation.length === 0) throw new Error("Configure at least one validation command.");
           } catch (error) { validationIssue = (error as Error).message; }
-          for (const requirement of discovered) requirements.push({ ...requirement, validation, validationIssue });
+          for (const requirement of discovered) requirements.push({ ...requirement, editorUrl: this.editorLink.retrieveUrl(absolutePath, requirement.line), validation, validationIssue });
         }
       } catch (error) { issues.push(`${path}: ${(error as Error).message}`); }
     }

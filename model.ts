@@ -21,6 +21,7 @@ export interface Requirement {
   title: string;
   suites: string[];
   line: number;
+  editorUrl?: string;
   range: { start: number; end: number };
   sourceFingerprint: string;
   implementationFingerprint: string;

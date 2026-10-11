@@ -31,4 +31,18 @@ describe("Requirement catalog", () => {
     await writeFile(join(root, "apps", "example", "session.test.ts"), `it('opens the selection', () => {});`);
     expect((await catalog.retrieveSnapshot(true)).requirements[0].title).toBe("opens the selection");
   });
+  it("links each test to its source line in VS Code with encoded file names", async () => {
+    const root = await mkdtemp(join(tmpdir(), "requirement-editor-")); directories.push(root);
+    const directory = join(root, "apps", "example");
+    await mkdir(directory, { recursive: true });
+    const path = join(directory, "user #résumé.test.ts");
+    await writeFile(path, `import { describe, it } from 'vitest';\ndescribe('Users', () => {\n  it('opens the profile', () => {});\n  it('saves the profile', () => {});\n});`);
+    const snapshot = await new RequirementCatalog(root).retrieveSnapshot();
+    const locations = snapshot.requirements.map(requirement => new URL(requirement.editorUrl!));
+    expect(locations.map(location => location.protocol)).toEqual(["vscode:", "vscode:"]);
+    expect(locations.map(location => location.hostname)).toEqual(["file", "file"]);
+    expect(locations.map(location => decodeURIComponent(location.pathname))).toEqual([3, 4].map(line => `${process.platform === "win32" ? "/" : ""}${path.replaceAll("\\", "/")}:${line}:1`));
+    expect(locations[0].pathname).toContain("user%20%23r%C3%A9sum%C3%A9.test.ts");
+    expect(locations[0].hash).toBe("");
+  });
 });
