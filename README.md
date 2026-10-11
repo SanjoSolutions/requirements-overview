@@ -2,6 +2,8 @@
 
 Local requirement editor built with TypeScript, Vite, and Bootstrap.
 
+![Requirements overview showing its own test requirements](docs/requirements-overview.jpg)
+
 Select a project to view its complete requirement outline. Headings use the `describe` text, and nested `describe` blocks preserve their hierarchy. Click a test description to edit it in place. **Enter** saves the description text in the test file; **Esc** cancels. Search refines the selected project. Hover over a test or focus its row to reveal the icon on the right, then open its source line in VS Code.
 
 Test source edits, additions, removals, and project configuration changes update the view automatically. A debounced file watcher refreshes the shared catalog and publishes notifications through a reconnecting event stream. The tree reuses its nodes to retain scroll position, expanded suites, and active drafts. Source-version checks preserve external edits when a draft becomes stale.
