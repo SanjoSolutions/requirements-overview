@@ -38,3 +38,7 @@ Optional repository-root `requirements-overview.config.json` selects discovery r
 The catalog includes configured C++ build and test recipes, Godot runner metadata, and JavaScript runner metadata from the owning project. These commands belong to catalog metadata; the requirement editor performs source-text updates.
 
 Run `pnpm --filter @sanjo/requirements-overview test`, `typecheck`, and `build` for development checks. Unit tests use Vitest and exercise the adapters, catalog, live updates, and description saves through their public APIs.
+
+## License
+
+[MIT-0](LICENSE).
