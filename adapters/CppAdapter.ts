@@ -65,6 +65,6 @@ export class CppAdapter extends TestFrameworkAdapter {
     return requirements;
   }
   retrieveValidation(): ValidationCommand[] {
-    throw new Error("Configure C++ build and test commands in test-requirements.config.json.");
+    throw new Error("Configure C++ build and test commands in requirements-overview.config.json.");
   }
 }

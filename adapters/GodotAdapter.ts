@@ -53,6 +53,6 @@ export class GodotAdapter extends TestFrameworkAdapter {
     if (existsSync(runner)) {
       return [{ command: "python", arguments: [runner, "--suite", "changed", "--changed", relative(context.projectDirectory, context.absolutePath).replaceAll("\\", "/")], cwd: context.projectDirectory }];
     }
-    throw new Error("Configure validation for this Godot project in test-requirements.config.json.");
+    throw new Error("Configure validation for this Godot project in requirements-overview.config.json.");
   }
 }

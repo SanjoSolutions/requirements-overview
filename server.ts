@@ -64,7 +64,7 @@ export async function startServer(root = resolve(import.meta.dirname, "../.."), 
   const server = await createServer({
     root: import.meta.dirname, configFile: false,
     server: { host: "127.0.0.1", port, strictPort: true, fs: { deny: ["**/.state/**", "**/.git/**", "**/.env*"] } },
-    plugins: [{ name: "test-requirements-api", hotUpdate(context) {
+    plugins: [{ name: "requirements-overview-api", hotUpdate(context) {
       if (catalog.isRelevantPath(context.file)) return [];
     }, configureServer(vite) {
       vite.middlewares.use((request, response, next) => {

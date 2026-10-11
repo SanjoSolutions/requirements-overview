@@ -22,7 +22,7 @@ describe("Requirement catalog", () => {
     await mkdir(join(root, "apps", "example"), { recursive: true });
     await writeFile(join(root, "apps", "example", "package.json"), JSON.stringify({ devDependencies: { vitest: "4" } }));
     await writeFile(join(root, "apps", "example", "session.test.ts"), `describe('Sessions', () => { it('keeps the selection', () => {}); });`);
-    await writeFile(join(root, "test-requirements.config.json"), JSON.stringify({ validation: [{ path: "apps/example", commands: [{ command: process.execPath, arguments: ["--version"] }] }] }));
+    await writeFile(join(root, "requirements-overview.config.json"), JSON.stringify({ validation: [{ path: "apps/example", commands: [{ command: process.execPath, arguments: ["--version"] }] }] }));
     const catalog = new RequirementCatalog(root);
     const snapshot = await catalog.retrieveSnapshot();
     expect(snapshot.requirements).toHaveLength(1);

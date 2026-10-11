@@ -31,12 +31,12 @@ export class RequirementCatalog {
   isRelevantPath(path: string): boolean {
     const localPath = relative(this.root, resolve(this.root, path)).replaceAll("\\", "/");
     const segments = localPath.split("/");
-    return localPath === "test-requirements.config.json" || (segments.every(segment => !segment.startsWith(".") && !excludedDirectories.has(segment))
+    return localPath === "requirements-overview.config.json" || (segments.every(segment => !segment.startsWith(".") && !excludedDirectories.has(segment))
       && (candidate(localPath) || ["package.json", "project.godot"].includes(segments.at(-1)!) || !segments.at(-1)!.includes(".")));
   }
 
   async retrieveConfiguration(): Promise<CatalogConfiguration> {
-    const path = join(this.root, "test-requirements.config.json");
+    const path = join(this.root, "requirements-overview.config.json");
     return existsSync(path) ? JSON.parse(await readFile(path, "utf8")) : {};
   }
 
