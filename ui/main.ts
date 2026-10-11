@@ -42,9 +42,10 @@ async function refresh() {
           project.value = value && projects.includes(value) ? value : projects[0] ?? "";
         }
         renderTree();
-        if (snapshot.issues.length) showMessage(`${snapshot.issues.length} source files need review. ${snapshot.issues[0]}`, "warning");
+        if (snapshot.issues.length) showMessage(`${snapshot.issues.length} source files need review. ${snapshot.issues[0]}`, "warning", "catalog");
+        else if (element("message").dataset.kind === "catalog") element("message").classList.add("d-none");
       }
-    } catch (error) { showMessage((error as Error).message); }
+    } catch (error) { showMessage((error as Error).message, "danger", "catalog"); }
     finally { refreshing = false; }
   }
 }
@@ -88,7 +89,7 @@ let updates: EventSource;
 function connectUpdates() {
   updates?.close(); updates = new EventSource("/api/events");
   updates.addEventListener("catalog", () => void refresh());
-  updates.addEventListener("source-error", event => showMessage(JSON.parse((event as MessageEvent).data).message, "warning"));
+  updates.addEventListener("source-error", event => showMessage(JSON.parse((event as MessageEvent).data).message, "warning", "catalog"));
   updates.addEventListener("error", () => showMessage("Reconnecting to live updates…", "warning", "connection"));
   updates.addEventListener("open", () => { if (element("message").dataset.kind === "connection") element("message").classList.add("d-none"); });
 }
